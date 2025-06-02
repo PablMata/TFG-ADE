@@ -1,0 +1,36 @@
+library(ggplot2)
+library(tidyr)
+
+# Crear carpeta results si no existe
+if (!dir.exists("results")) dir.create("results")
+
+# Cargar datos
+load("data/split_data_stoxx50_con_sp500.RData")
+preds <- readRDS("data/preds_stoxx50_con_sp500.rds")
+
+# Crear dataframe
+df <- data.frame(
+  date = data$date[(train_size + 1):nrow(data)],
+  Real = test_y,
+  Predicción = preds
+)
+
+df_long <- pivot_longer(df, cols = c("Real", "Predicción"),
+                        names_to = "Tipo", values_to = "Valor")
+
+# Crear gráfico
+grafico <- ggplot(df_long, aes(x = date, y = Valor, color = Tipo)) +
+  geom_line(size = 0.6) +
+  labs(
+    title = "Retornos reales vs predichos - Stoxx50 (CON SP500)",
+    y = "Retorno a 5 días",
+    x = "Fecha",
+    color = "Serie"
+  ) +
+  theme_minimal()
+
+# Mostrar gráfico
+print(grafico)
+
+# Guardar gráfico como PNG
+ggsave("results/grafico_retornos_stoxx50_con_sp500.png", plot = grafico, width = 9, height = 5)
